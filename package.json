@@ -1,0 +1,17 @@
+{
+  "name": "tunetied",
+  "version": "1.0.0",
+  "description": "<H1> COP3530 - Project 3 </h1> This is the template for Project 3 repositories. It includes all the assignment instructions and documentation to help you use GitHub.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.8",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
+  }
+}
