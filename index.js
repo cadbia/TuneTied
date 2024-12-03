@@ -7,6 +7,7 @@ const express = require('express');
 const axios = require('axios'); // Axios for making HTTP requests
 const dotenv = require('dotenv'); // Dotenv for managing environment variables
 const querystring = require('querystring'); // For parsing querystrings
+const { depthFirstSearch, breadthFirstSearch } = require('./graphTraversal'); //functions for traversing the song genres
 
 // Load environment variables from .env file
 dotenv.config();
@@ -22,13 +23,45 @@ const app = express();
 
 const cors = require('cors'); // Import CORS
 
-app.use(cors()); // Enable CORS for all routes
+//app.use(cors()); // Enable CORS for all routes
+app.use(cors({ origin: 'http://localhost:3001' }));
 
 // Var to store access token
 let accessToken = null;
 
 // Var to store state (a security measure)
 let storedState = null;
+
+// Fetch playlist data from the API
+async function fetchPlaylistData(playlistId) {
+  try {
+      const response = await axios.get(`http://localhost:3000/playlist/${playlistId}`);
+      return response.data; // This is the array of tracks
+  } catch (error) {
+      console.error("Error fetching playlist data:", error);
+  }
+}
+
+// Build the graph from playlist data
+function buildGraph(data) {
+  const graph = {};
+
+  data.forEach((song) => {
+      const genres = song.genres.split(', ').map((genre) => genre.trim());
+      genres.forEach((genre) => {
+          if (!graph[genre]) graph[genre] = [];
+          graph[genre].push(song.name); // Link genre to songs
+      });
+  });
+
+  return graph; // Graph with genres as edges and songs as nodes
+}
+
+// Find the most similar songs using BFS (or DFS)
+function findSimilarSongs(graph, startGenre, limit = 10) {
+  const similarSongs = breadthFirstSearch(graph, startGenre); // or depthFirstSearch
+  return similarSongs.slice(0, limit); // Return up to 10 songs
+}
 
 
 // Root route - simple route to confirm server is running
@@ -95,7 +128,7 @@ app.get('/callback', async (req, res) => {
         const refresh_token = response.data.refresh_token;
 
         // Redirect back to frontend with a success message
-        res.redirect('http://localhost:3001');
+        res.redirect('http://localhost:3001/playlists');
     } catch (error) {
         console.error('Error in callback:', error);
         res.redirect('http://localhost:3001/#error=authentication_failed');
@@ -207,6 +240,36 @@ app.get('/playlist/:id', async (req, res) => {
     // console.log(`Tracks fetched successfully for playlist ${playlistId}:`, tracks);
     
 });
+
+app.get('/traverse/dfs', (req, res) => {
+  const { startNode } = req.query;
+  const result = depthFirstSearch(graph, startNode || 'rock');
+  res.json({ algorithm: 'DFS', result });
+});
+
+app.get('/traverse/bfs', (req, res) => {
+  const { startNode } = req.query;
+  const result = breadthFirstSearch(graph, startNode || 'rock');
+  res.json({ algorithm: 'BFS', result });
+});
+
+// Endpoint to generate a mini playlist based on genre similarity
+app.get('/mini-playlist/:id', async (req, res) => {
+  const playlistId = req.params.id;
+  const { startGenre } = req.query;  // Accept genre as a query parameter
+
+  try {
+      const playlistData = await fetchPlaylistData(playlistId);
+      const graph = buildGraph(playlistData);  // Build the graph from playlist data
+      const miniPlaylist = findSimilarSongs(graph, startGenre || 'rock');  // Get the mini playlist
+      res.json(miniPlaylist);  // Send back the mini playlist
+  } catch (error) {
+      console.error("Error generating mini-playlist:", error);
+      res.status(500).send("Error generating mini-playlist");
+  }
+});
+
+
   
 // Start server
 

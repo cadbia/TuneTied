@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Playlists = () => {
   const [playlists, setPlaylists] = useState([]);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // For navigation
 
   useEffect(() => {
     const fetchPlaylists = async () => {
@@ -18,6 +20,10 @@ const Playlists = () => {
     fetchPlaylists();
   }, []);
 
+  const handlePlaylistClick = (id, algorithm) => {
+    navigate(`/traverse/${algorithm}?playlistId=${id}`); // Redirect with playlist ID and algorithm
+  };
+
   return (
     <div>
       <h1>Your Playlists</h1>
@@ -26,6 +32,8 @@ const Playlists = () => {
         {playlists.map((playlist) => (
           <li key={playlist.id}>
             {playlist.name} ({playlist.tracks} tracks)
+            <button onClick={() => handlePlaylistClick(playlist.id, 'dfs')}>DFS</button>
+            <button onClick={() => handlePlaylistClick(playlist.id, 'bfs')}>BFS</button>
           </li>
         ))}
       </ul>
