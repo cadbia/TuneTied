@@ -2,6 +2,7 @@
 // To run server call 'node index.js' from command line
 // To stop server ^C
 
+
 const express = require('express'); 
 const axios = require('axios'); // Axios for making HTTP requests
 const dotenv = require('dotenv'); // Dotenv for managing environment variables
@@ -18,6 +19,10 @@ const PORT = 3000; // Server port
 
 // Init Express application
 const app = express();
+
+const cors = require('cors'); // Import CORS
+
+app.use(cors()); // Enable CORS for all routes
 
 // Var to store access token
 let accessToken = null;
@@ -56,44 +61,45 @@ app.get('/login', (req, res) => {
 // https://developer.spotify.com/documentation/web-api/tutorials/code-flow
 
 app.get('/callback', async (req, res) => {
-    var code = req.query.code || null; // Extract auth code from query string
-    var state = req.query.state || null; // Extract state param from query string
+    var code = req.query.code || null;
+    var state = req.query.state || null;
   
     // Check for state mismatch
     if (state === null) {
-        res.redirect('/#' +
-        querystring.stringify({
-            error: 'state_mismatch'
-        }));
-    } else {
-        var authOptions = {
-            url: 'https://accounts.spotify.com/api/token', // Spotify's token endpoint
-            form: {
-                code: code, // Authorization code from Spotify
-                redirect_uri: REDIRECT_URI,
-                grant_type: 'authorization_code',
+        res.redirect('http://localhost:3001/#error=state_mismatch');
+        return;
+    }
+  
+    var authOptions = {
+        url: 'https://accounts.spotify.com/api/token',
+        form: {
+            code: code,
+            redirect_uri: REDIRECT_URI,
+            grant_type: 'authorization_code',
         },
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic ' + (Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')), // Client credentials in base64
+            'Authorization': 'Basic ' + (Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')),
         },
-        json: true, // Parse response as JSON
-        };
-    }
+        json: true,
+    };
   
-    // POST request to Spotify's token endpoint
-    const response = await axios.post(authOptions.url, authOptions.form, {
-        headers: authOptions.headers,
-    });
+    try {
+        // POST request to Spotify's token endpoint
+        const response = await axios.post(authOptions.url, authOptions.form, {
+            headers: authOptions.headers,
+        });
 
-    // Extract access and refresh tokens from response
-    accessToken = response.data.access_token;
-    const { refresh_token, expires_in } = response.data;
+        // Extract access and refresh tokens from response
+        accessToken = response.data.access_token;
+        const refresh_token = response.data.refresh_token;
 
-    res.send('Authorization successful! Can now fetch your playlists at /playlists.');
-    
-    // console.log('Access Token:', accessToken);
-    // console.log('Refresh Token:', refresh_token);
+        // Redirect back to frontend with a success message
+        res.redirect('http://localhost:3001');
+    } catch (error) {
+        console.error('Error in callback:', error);
+        res.redirect('http://localhost:3001/#error=authentication_failed');
+    }
 });
 
 // Playlists route - Fetches the user's playlists from Spotify using access token
@@ -137,17 +143,32 @@ app.get('/playlist/:id', async (req, res) => {
       return res.status(401).send('Access token unavailable. Log in at /login.');
     }
 
-    const tracksResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+    let allTracks = []; // Arr to store all tracks
+    let nextUrl = `https://api.spotify.com/v1/playlists/${playlistId}/tracks`; // Initial URL for tracks
+
+    // Loop through paginated results
+    while (nextUrl) {
+      const tracksResponse = await axios.get(nextUrl, {
         headers: {
-        Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
-    });
+      });
+      
+ // Append the current set of tracks to the allTracks array (added this line)
+ allTracks = allTracks.concat(
+    tracksResponse.data.items.filter((item) => item.track) // Ensure valid track object
+  );
+
+  // Update nextUrl for the next set of tracks (added this line)
+  nextUrl = tracksResponse.data.next;
+}
+  
   
     // Extract unique artist IDs from playlist
     const artistIds = [
     ...new Set(
-        tracksResponse.data.items
-        .filter((item) => item.track) // Ensure valid track object
+        allTracks
+
         .flatMap((item) => item.track.artists.map((artist) => artist.id)) // Collect all artist IDs
     ),
     ];
@@ -167,9 +188,7 @@ app.get('/playlist/:id', async (req, res) => {
     }, {});
   
     // Format track data
-    const tracks = tracksResponse.data.items
-        .filter((item) => item.track) // Ensure valid track object
-        .map((item) => ({
+    const tracks = allTracks.map((item) => ({
             name: item.track.name, 
             artist: item.track.artists.map((artist) => artist.name).join(', '),
             album: item.track.album.name,
@@ -182,7 +201,8 @@ app.get('/playlist/:id', async (req, res) => {
             release_date: item.track.album.release_date,
             added_at: item.added_at,
     }));
-  
+   
+ 
     res.json(tracks); // Send formatted track data JSON
     // console.log(`Tracks fetched successfully for playlist ${playlistId}:`, tracks);
     
