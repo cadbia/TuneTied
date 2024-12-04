@@ -26,7 +26,12 @@ const WelcomeScreen = () => (
   <div className="App">
     <h2 className="welcome-text">welcome to</h2>
     <h1 className="tunetied-text">TuneTied</h1>
+    <img className="casette-image" src="/tunetied_pic1.png" alt="casette" />
     <LoginButton />
+    <img className="guitar-image" src="/tunetied_pic2.png" alt="guitar" />
+
+
+
   </div>
 );
 

@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+
 }
 
 .App-logo {
@@ -60,10 +61,11 @@ button:hover{
   cursor: pointer;
   border-radius: 40px;  
   border: none;
-  margin: 20px 0 0 0;
+  margin-bottom: 0;
   font-size: 20px; 
   transition: background-color 0.3s;
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+  align-items: center; 
 }
 
 .login-button:hover {
@@ -91,7 +93,7 @@ button:hover{
   color: #ffffff;
   font-size: 50px;
   font-family: 'oxygen', sans-serif;
-  margin: 150px 0 0 0;
+  margin: 100px 0 0 0;
 
 }
 
@@ -125,4 +127,20 @@ select{
   font-size: 15px; 
   transition: background-color 0.3s;
   margin: 0 0 0 5px;
+}
+
+.casette-image {
+  width: 400px;
+  height: auto;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-right: 110px;
+
+}
+
+.guitar-image {
+  width: 300px;
+  height: auto;
+  border-radius: 10px;
+  margin-left: 200px;
 }
