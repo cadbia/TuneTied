@@ -7,7 +7,7 @@ const axios = require('axios'); // Axios for making HTTP requests
 const dotenv = require('dotenv'); // Dotenv for managing environment variables
 const querystring = require('querystring'); // For parsing querystrings
 const readline = require('readline'); // For terminal input
-const { depthFirstSearch, breadthFirstSearch } = require('./graphTraversal'); // Traversal functions
+const { weightedDepthFirstSearch, weightedBreadthFirstSearch } = require('./graphTraversal'); // Traversal functions
 
 dotenv.config();
 
@@ -91,27 +91,41 @@ async function fetchPlaylistData(playlistId) {
 
 
 console.log("Access Token:", accessToken);
-
-
-// Build the graph from playlist data
 function buildGraph(data) {
   const graph = {};
 
+  // First, create a node for each song and initialize an empty array for each genre
   data.forEach((song) => {
-      // Ensure genre exists and is a string
-      if (!song.genres || song.genres.trim() === '') {
-          console.log(`Skipping song with missing or invalid genre: ${song.name}`);
-          return; // Skip songs with invalid genres
+    const genres = song.genres.split(', ').map((genre) => genre.trim());
+    genres.forEach((genre) => {
+      if (!graph[genre]) {
+        graph[genre] = [];  // Initialize empty array if genre is not yet in the graph
       }
-
-      const genres = song.genres.split(', ').map((genre) => genre.trim());
-      genres.forEach((genre) => {
-          if (!graph[genre]) graph[genre] = [];
-          graph[genre].push(song.name);
-      });
+      // Add song to the list of songs for that genre
+      graph[genre].push({ song: song.name, weight: 0 }); // Initially weight is 0
+    });
   });
 
-  console.log("Built graph:", graph);  // Log the final graph
+  // Now calculate the weights based on shared genres between songs
+  Object.keys(graph).forEach(genre => {
+    const songs = graph[genre];
+
+    songs.forEach((songA, indexA) => {
+      songs.forEach((songB, indexB) => {
+        if (indexA !== indexB) {
+          // Find shared genres between songA and songB
+          const sharedGenres = graph[genre].filter(s => s.song === songB.song).length;
+          // Increase the weight for the shared songs
+          const existingConnection = graph[genre].find(s => s.song === songB.song);
+          if (existingConnection) {
+            existingConnection.weight += sharedGenres;
+          }
+        }
+      });
+    });
+  });
+
+  console.log("Built graph with weighted edges:", graph);  // Log to verify the structure
   return graph;
 }
 
@@ -300,36 +314,42 @@ app.get('/load/:id', async (req, res) => {
 
 app.get('/traverse/:algorithm', async (req, res) => {
   const { algorithm } = req.params;
-  const { playlistId, startGenre } = req.query; // Get playlistId and startGenre from query parameters
+  const { playlistId, startGenre } = req.query;
+
+  console.log("Request received:", { algorithm, playlistId, startGenre });
+
 
   if (!playlistId) {
-    return res.status(400).json({ error: 'Playlist ID is missing.' });
+    console.error("Missing playlist ID");
+    return res.status(400).json({ error: "Playlist ID is missing." });
   }
 
   try {
     const playlistData = await fetchPlaylistData(playlistId);
     const graph = buildGraph(playlistData);
+    const availableGenres = Object.keys(graph);  // Extract genres from graph keys
 
-    // Get all available genres from the graph
-    const availableGenres = Object.keys(graph);
 
     let traversalResults = [];
-    if (algorithm === 'dfs') {
-      traversalResults = depthFirstSearch(graph, startGenre || 'rock');
-    } else if (algorithm === 'bfs') {
-      traversalResults = breadthFirstSearch(graph, startGenre || 'rock');
+    if (algorithm === "dfs") {
+      traversalResults = weightedDepthFirstSearch(graph, startGenre || "rock");
+    } else if (algorithm === "bfs") {
+      traversalResults = weightedBreadthFirstSearch(graph, startGenre || "rock");
     } else {
-      return res.status(400).json({ error: 'Invalid algorithm specified.' });
+      console.error("Invalid algorithm:", algorithm);
+      return res.status(400).json({ error: "Invalid algorithm specified." });
     }
 
-    res.json({ traversalResults, availableGenres }); // Send both results and available genres
+    console.log("Traversal results:", traversalResults);
+    res.json({ traversalResults, availableGenres });
+
+    console.log("Available Genres:", availableGenres);
+
   } catch (err) {
-    console.error('Error during traversal:', err);
-    res.status(500).json({ error: 'Failed to fetch traversal results.' });
+    console.error("Error during traversal:", err.message);
+    res.status(500).json({ error: "Failed to fetch traversal results." });
   }
 });
-
-
 
 
 // Start the server

@@ -1,48 +1,73 @@
 // To complete the requirements of the project, we are sorting and parsing our data using graphs and BFS/DFS traversal
-// each song is a node and each edge is a genre
+// each song is a node and each edge is weighted by genres in common
 
-//Depth first search...
-function depthFirstSearch(graph, start) {
+
+function weightedDepthFirstSearch(graph, start) {
     const visited = new Set();
     const result = [];
-
-    function dfs(node) {
-        if (visited.has(node)) return;
-        visited.add(node);
-        result.push(node);
-
-        if (graph[node]) {
-            for (const neighbor of graph[node]) {
-                dfs(neighbor);
+    const stack = [{ song: start, weight: 0 }]; // Use stack for DFS
+  
+    while (stack.length > 0) {
+      // Sort stack by weight to prioritize connections with higher shared genres
+      stack.sort((a, b) => b.weight - a.weight);  // Sort by weight, higher first
+      const { song } = stack.shift();  // Remove the highest-weight song
+  
+      if (!visited.has(song)) {
+        visited.add(song);
+        result.push(song);
+  
+        if (graph[song]) {
+          graph[song].forEach((neighbor) => {
+            if (!visited.has(neighbor.song)) {
+              stack.push({ song: neighbor.song, weight: neighbor.weight });
             }
+          });
         }
+      }
+  
+      // Stop after 10 songs for the mini playlist
+      if (result.length >= 10) break;
     }
-
-    dfs(start);
+  
     return result;
-}
+  }
+  
+  
 
 
 // Breadth first seach
-function breadthFirstSearch(graph, start) {
+function weightedBreadthFirstSearch(graph, start) {
     const visited = new Set();
     const result = [];
-    const queue = [start];
-
+    const queue = [{ song: start, weight: 0 }];  // Start with the initial node and weight 0
+    
     while (queue.length > 0) {
-        const node = queue.shift();
-
-        if (!visited.has(node)) {
-            visited.add(node);
-            result.push(node);
-
-            if (graph[node]) {
-                queue.push(...graph[node]);
+      // Dequeue the next node (we'll process it based on its weight)
+      const { song, weight } = queue.shift();
+      
+      if (!visited.has(song)) {
+        visited.add(song);
+        result.push(song);  // Add the song to the result
+  
+        if (graph[song]) {
+          // Push the neighbors into the queue, with the weight
+          graph[song].forEach((neighbor) => {
+            if (!visited.has(neighbor.song)) {
+              // Add the neighbor's song and weight to the queue
+              queue.push({ song: neighbor.song, weight: neighbor.weight });
             }
+          });
         }
+      }
+  
+      // Stop after 10 songs for the mini playlist
+      if (result.length >= 10) break;
     }
-
+  
     return result;
-}
+  }
+  
+  
+  
 
-module.exports = { depthFirstSearch, breadthFirstSearch };
+module.exports = { weightedDepthFirstSearch, weightedBreadthFirstSearch };
