@@ -284,7 +284,7 @@ app.get('/mini-playlist/:id', async (req, res) => {
     try {
         const playlistData = await fetchPlaylistData(playlistId);
         graph = buildGraph(playlistData);
-        const miniPlaylist = breadthFirstSearch(graph, startGenre || 'rock').slice(0, 10);
+        const miniPlaylist = breadthFirstSearch(graph, startGenre || '').slice(0, 10);
         res.json(miniPlaylist);
     } catch (error) {
         console.error("Error generating mini-playlist:", error);
@@ -314,7 +314,7 @@ app.get('/load/:id', async (req, res) => {
 
 app.get('/traverse/:algorithm', async (req, res) => {
   const { algorithm } = req.params;
-  const { playlistId, startGenre } = req.query;
+  const { playlistId, startGenre, limit } = req.query;
 
   console.log("Request received:", { algorithm, playlistId, startGenre });
 
@@ -327,21 +327,29 @@ app.get('/traverse/:algorithm', async (req, res) => {
   try {
     const playlistData = await fetchPlaylistData(playlistId);
     const graph = buildGraph(playlistData);
-    const availableGenres = Object.keys(graph);  // Extract genres from graph keys
+    
+    // Calculate the top 10 genres with the most songs
+    const genreCounts = Object.keys(graph)
+    .map((genre) => ({ genre, count: graph[genre].length })) // Map genres to their counts
+    .sort((a, b) => b.count - a.count); // Sort by count descending
+
+   const availableGenres = genreCounts.slice(0, 15).map((item) => item.genre); // Top 15 genres
+   const topGenre = availableGenres[0];
+  
 
 
     let traversalResults = [];
     if (algorithm === "dfs") {
-      traversalResults = weightedDepthFirstSearch(graph, startGenre || "rock");
+      traversalResults = weightedDepthFirstSearch(graph, startGenre || "", parseInt(limit, 10));
     } else if (algorithm === "bfs") {
-      traversalResults = weightedBreadthFirstSearch(graph, startGenre || "rock");
+      traversalResults = weightedBreadthFirstSearch(graph, startGenre || "", parseInt(limit, 10));
     } else {
       console.error("Invalid algorithm:", algorithm);
       return res.status(400).json({ error: "Invalid algorithm specified." });
     }
 
     console.log("Traversal results:", traversalResults);
-    res.json({ traversalResults, availableGenres });
+    res.json({ traversalResults, availableGenres, topGenre });
 
     console.log("Available Genres:", availableGenres);
 
