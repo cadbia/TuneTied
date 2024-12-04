@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+
 }
 
 .App-logo {
@@ -7,11 +8,6 @@
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
 
 .App-header {
   background-color: #282c34;
@@ -37,20 +33,63 @@
   }
 }
 
-button {
-  background-color: #cdd5d0;
-  color: rgb(0, 0, 0);
-  border: none;
-  padding: 2px;
-  cursor: pointer;
-  font-size: 18px; 
-  transition: background-color 0.3s;
-  margin: 0 0 0 5px;
+/* Container for each playlist row */
+.playlist-list {
+  list-style-type: none;
+  padding: 0;
 }
-button:hover{
-    background-color: #ec9e9e;
 
+.playlist-item {
+  margin-bottom: 10px;
+  padding: 10px;
 }
+
+.playlist-row {
+  background-color: #b9d4cf; 
+  border-radius: 50px;      
+  padding: 12px 40px; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.playlist-row span {
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  background-color: #2F575D;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 30px;   /* Round button corners */
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #ec9e9e; /* Darker color on hover */
+}
+
+/* Optional: Add responsive design for mobile */
+@media (max-width: 600px) {
+  .playlist-row {
+    flex-direction: column;
+    align-items: center;
+  }
+  .button-container {
+    margin-top: 10px;
+  }
+}
+
 
 .login-button{
   background-color: #2F575D;
@@ -60,10 +99,11 @@ button:hover{
   cursor: pointer;
   border-radius: 40px;  
   border: none;
-  margin: 20px 0 0 0;
+  margin-bottom: 0;
   font-size: 20px; 
   transition: background-color 0.3s;
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+  align-items: center; 
 }
 
 .login-button:hover {
@@ -91,7 +131,7 @@ button:hover{
   color: #ffffff;
   font-size: 50px;
   font-family: 'oxygen', sans-serif;
-  margin: 150px 0 0 0;
+  margin: 100px 0 0 0;
 
 }
 
@@ -112,7 +152,7 @@ ul{
 }
 
 label{
-  margin: 0 0 0 50px;
+  margin: 0 0 0 580px;
 }
 
 select{
@@ -124,5 +164,26 @@ select{
   border-radius: 15px;
   font-size: 15px; 
   transition: background-color 0.3s;
-  margin: 0 0 0 5px;
+  margin: 40px 0 0 10px;  
+}
+
+.casette-image {
+  width: 400px;
+  height: auto;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-right: 110px;
+  
+
+}
+
+.guitar-image {
+  width: 300px;
+  height: auto;
+  border-radius: 10px;
+  margin-left: 200px;
+}
+
+h2{
+  margin-left: 20px;
 }
