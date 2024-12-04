@@ -16,7 +16,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<WelcomeScreen />} />
         <Route path="/playlists" element={<Playlists />} />
-        <Route path="/traverse/:algorithm" element={<TraversalResults />} /> {/* Show traversal results */}
+        <Route path="/traverse/:algorithm" element={<TraversalResults />} />
       </Routes>
     </Router>
   );
@@ -24,7 +24,8 @@ const App = () => {
 
 const WelcomeScreen = () => (
   <div className="App">
-    <h1 className="welcome-screen-text">Welcome to TuneTied!</h1>
+    <h2 className="welcome-text">welcome to</h2>
+    <h1 className="tunetied-text">TuneTied</h1>
     <LoginButton />
   </div>
 );

@@ -26,7 +26,7 @@ const Playlists = () => {
 
   return (
     <div>
-      <h1>Your Playlists</h1>
+      <h1>*♫:⋆𝄞 Your Playlists ✩♬₊˚.</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <ul>
         {playlists.map((playlist) => (

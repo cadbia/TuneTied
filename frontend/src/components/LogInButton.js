@@ -8,8 +8,8 @@ const LoginButton = () => {
 
   return (
     // make a button thats clickable
-    <button onClick={handleLogin}>
-      Log in with Spotify Here
+    <button onClick={handleLogin} className="login-button">
+      Log into Spotify here!
     </button>
   );
 };

@@ -44,11 +44,11 @@ const TraversalResults = () => {
 
   return (
     <div>
-      <h1>{algorithm.toUpperCase()} Traversal Results</h1>
+      <h1>{algorithm.toUpperCase()} Mini Playlist</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {/* Genre Selection Dropdown */}
-      <label htmlFor="genre-select">Select Genre:</label>
+      <label htmlFor="genre-select">Select a Genre:</label>
       <select id="genre-select" value={selectedGenre} onChange={handleGenreChange}>
         {availableGenres && availableGenres.length > 0 ? (
           availableGenres.map((genre) => (
