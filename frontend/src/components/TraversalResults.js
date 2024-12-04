@@ -3,13 +3,14 @@ import axios from 'axios';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 
 const TraversalResults = () => {
-  const [results, setResults] = useState([]);
-  const [availableGenres, setAvailableGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState('rock'); // Default to 'rock'
+  const [results, setResults] = useState([]); // Songs
+  const [availableGenres, setAvailableGenres] = useState([]); // Genres
+  const [selectedGenre, setSelectedGenre] = useState('rock'); // Default genre
   const [error, setError] = useState(null);
+
   const location = useLocation();
   const navigate = useNavigate();
-  const { algorithm } = useParams(); // Get DFS or BFS from the route
+  const { algorithm } = useParams(); // Algorithm (BFS or DFS)
 
   const queryParams = new URLSearchParams(location.search);
   const playlistId = queryParams.get('playlistId'); // Get playlist ID from query parameters
@@ -22,13 +23,12 @@ const TraversalResults = () => {
 
     const fetchTraversalResults = async () => {
       try {
-        // Fetch traversal results and available genres
         const response = await axios.get(`http://localhost:3000/traverse/${algorithm}`, {
           params: { playlistId, startGenre: selectedGenre }, // Send selected genre
         });
 
-        setResults(response.data.traversalResults); // Take response as an array of songs
-        setAvailableGenres(response.data.availableGenres); // Set available genres
+        setResults(response.data.traversalResults); // Songs
+        setAvailableGenres(response.data.availableGenres); // Genres
       } catch (err) {
         setError('Failed to fetch traversal results.');
         console.error(err);
@@ -36,11 +36,14 @@ const TraversalResults = () => {
     };
 
     fetchTraversalResults();
-  }, [playlistId, algorithm, selectedGenre]); // Fetch results when selectedGenre changes
+  }, [playlistId, algorithm, selectedGenre]); // Refetch if selectedGenre changes
 
   const handleGenreChange = (event) => {
-    setSelectedGenre(event.target.value); // Update the selected genre
+    setSelectedGenre(event.target.value); // Update selected genre
   };
+
+  // Filter out the genres from results (remove the first line if it's a genre)
+  const filteredResults = results.filter(result => !availableGenres.includes(result));
 
   return (
     <div>
@@ -61,13 +64,13 @@ const TraversalResults = () => {
         )}
       </select>
 
+      {/* Display Top 10 Songs */}
+      <h2>Top 10 Songs</h2>
       <ul>
-        {results && results.length > 0 ? (
-          results.map((song, index) => (
-            <li key={index}>{song}</li>
-          ))
+        {filteredResults && filteredResults.length > 0 ? (
+          filteredResults.map((song, index) => <li key={index}>{song}</li>)
         ) : (
-          <li>No results available</li>
+          <li>No songs available</li>
         )}
       </ul>
     </div>
