@@ -64,7 +64,6 @@ const TraversalResults = () => {
         )}
       </select>
 
-      {/* Display Top 10 Songs */}
       <h2>Top 10 Songs</h2>
       <ul>
         {filteredResults && filteredResults.length > 0 ? (
