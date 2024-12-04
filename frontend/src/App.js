@@ -16,7 +16,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<WelcomeScreen />} />
         <Route path="/playlists" element={<Playlists />} />
-        <Route path="/traverse/:algorithm" element={<TraversalResults />} />
+        <Route path="/traverse/:algorithm" element={<TraversalResults />} /> {/* Show traversal results */}
       </Routes>
     </Router>
   );
@@ -30,3 +30,4 @@ const WelcomeScreen = () => (
 );
 
 export default App;
+

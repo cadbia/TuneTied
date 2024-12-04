@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router-dom';
 const Playlists = () => {
   const [playlists, setPlaylists] = useState([]);
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // For navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPlaylists = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/playlists'); // Ensure CORS is configured
+        const response = await axios.get('http://localhost:3000/playlists');
         setPlaylists(response.data);
       } catch (err) {
         setError('Failed to fetch playlists. Please log in again.');
@@ -21,7 +21,7 @@ const Playlists = () => {
   }, []);
 
   const handlePlaylistClick = (id, algorithm) => {
-    navigate(`/traverse/${algorithm}?playlistId=${id}`); // Redirect with playlist ID and algorithm
+    navigate(`/traverse/${algorithm}?playlistId=${id}`); // Navigate to the traversal page with playlist ID
   };
 
   return (
@@ -31,7 +31,7 @@ const Playlists = () => {
       <ul>
         {playlists.map((playlist) => (
           <li key={playlist.id}>
-            {playlist.name} ({playlist.tracks} tracks)
+            <span>{playlist.name} ({playlist.tracks} tracks)</span>
             <button onClick={() => handlePlaylistClick(playlist.id, 'dfs')}>DFS</button>
             <button onClick={() => handlePlaylistClick(playlist.id, 'bfs')}>BFS</button>
           </li>
