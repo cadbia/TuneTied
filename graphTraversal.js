@@ -2,7 +2,7 @@
 // each song is a node and each edge is weighted by genres in common
 
 
-function weightedDepthFirstSearch(graph, start) {
+function weightedDepthFirstSearch(graph, start, limit = 10) {
     const visited = new Set();
     const result = [];
     const stack = [{ song: start, weight: 0 }]; // Use stack for DFS
@@ -26,7 +26,7 @@ function weightedDepthFirstSearch(graph, start) {
       }
   
       // Stop after 10 songs for the mini playlist
-      if (result.length >= 10) break;
+      if (result.length > limit) break;
     }
   
     return result;
@@ -36,7 +36,7 @@ function weightedDepthFirstSearch(graph, start) {
 
 
 // Breadth first seach
-function weightedBreadthFirstSearch(graph, start) {
+function weightedBreadthFirstSearch(graph, start, limit = 10) {
     const visited = new Set();
     const result = [];
     const queue = [{ song: start, weight: 0 }];  // Start with the initial node and weight 0

@@ -4,9 +4,12 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 
 const TraversalResults = () => {
   const [results, setResults] = useState([]); // Songs
-  const [availableGenres, setAvailableGenres] = useState([]); // Genres
-  const [selectedGenre, setSelectedGenre] = useState('rock'); // Default genre
+  const [availableGenres, setAvailableGenres] = useState([]); // Genres (limited to top 10)
+  const [selectedGenre, setSelectedGenre] = useState(''); // Default genre
+  const [numSongs, setNumSongs] = useState(10); // Default number of songs to display
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true); // Loading state for delay
+  const [manualSelection, setManualSelection] = useState(false); // Track if user manually selects a genre
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,57 +25,92 @@ const TraversalResults = () => {
     }
 
     const fetchTraversalResults = async () => {
+      
       try {
         const response = await axios.get(`http://localhost:3000/traverse/${algorithm}`, {
-          params: { playlistId, startGenre: selectedGenre }, // Send selected genre
+          params: { playlistId, startGenre: selectedGenre, limit: numSongs },
         });
 
         setResults(response.data.traversalResults); // Songs
-        setAvailableGenres(response.data.availableGenres); // Genres
+        setAvailableGenres(response.data.availableGenres); // Top 10 Genres
+        if (response.data.topGenre && !manualSelection) {
+          setSelectedGenre(response.data.topGenre);
+          setTimeout(() => setLoading(false),  2000);
+        } else if(!response.data.availableGenres && !manualSelection) {
+          setError('Top genre not found.');
+        }
+
+
       } catch (err) {
         setError('Failed to fetch traversal results.');
         console.error(err);
+        setLoading(false); 
       }
     };
 
     fetchTraversalResults();
-  }, [playlistId, algorithm, selectedGenre]); // Refetch if selectedGenre changes
+  }, [playlistId, algorithm, selectedGenre, numSongs]);
 
   const handleGenreChange = (event) => {
-    setSelectedGenre(event.target.value); // Update selected genre
+    setSelectedGenre(event.target.value);
+    setManualSelection(true); 
   };
 
-  // Filter out the genres from results (remove the first line if it's a genre)
-  const filteredResults = results.filter(result => !availableGenres.includes(result));
+  const incrementSongs = () => {
+    setNumSongs((prev) => Math.min(prev + 1, 50));
+
+    setLoading(false);  
+  };
+
+  const decrementSongs = () => {
+    setNumSongs((prev) => Math.max(prev - 1, 1));
+  
+    setLoading(false); 
+  };
 
   return (
     <div>
       <h1>{algorithm.toUpperCase()} Mini Playlist</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-
+     
       {/* Genre Selection Dropdown */}
       <label htmlFor="genre-select">Select a Genre:</label>
       <select id="genre-select" value={selectedGenre} onChange={handleGenreChange}>
-        {availableGenres && availableGenres.length > 0 ? (
-          availableGenres.map((genre) => (
-            <option key={genre} value={genre}>
-              {genre}
-            </option>
-          ))
-        ) : (
-          <option value="">No genres available</option>
-        )}
+        {availableGenres.map((genre) => (
+          <option key={genre} value={genre}>
+            {genre}
+          </option>
+        ))}
       </select>
 
-      {/* Display Top 10 Songs */}
-      <h2>Top 10 Songs</h2>
-      <ul>
-        {filteredResults && filteredResults.length > 0 ? (
-          filteredResults.map((song, index) => <li key={index}>{song}</li>)
-        ) : (
-          <li>No songs available</li>
-        )}
-      </ul>
+      {/* Title with Increment/Decrement Buttons */}
+      <h2>
+        Top{' '}
+        <button onClick={decrementSongs} style={{ marginRight: '5px' }}>
+          -
+        </button>
+        {numSongs}
+        <button onClick={incrementSongs} style={{ marginLeft: '5px' }}>
+          +
+        </button>{' '}
+        Songs
+      </h2>
+       {/* Genre Title */}
+       <h2 style={{ textDecoration: 'underline' }}>{selectedGenre.toUpperCase()}</h2>
+
+
+      {/* Display the Top Songs */}
+      {loading ? (
+        <p>Loading top songs...</p> // Loading message
+      ) : (
+        <ul>
+          {results.length > 0 ? (
+            results.slice(1).map((song, index) => <li key={index + 1}>{song}</li>)
+          ) : (
+            <li>No songs available</li>
+          )}
+        </ul>
+      )}
     </div>
   );
 };
